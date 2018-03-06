@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mimic_joint_gazebo_tutorial</name>
+  <version>0.0.0</version>
+  <description>This package is a simple example on how to properly use the mimic joint plugin in Gazebo, while avoiding the gravity bug in Gazebo7.</description>
+
+  <maintainer email="martin.guenther@dfki.de">Martin Günther</maintainer>
+  <author email="martin.guenther@dfki.de">Martin Günther</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>roboticsgroup_gazebo_plugins</exec_depend>  <!-- from https://github.com/roboticsgroup/roboticsgroup_gazebo_plugins -->
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>rqt_joint_trajectory_controller</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>xacro</exec_depend>
+</package>

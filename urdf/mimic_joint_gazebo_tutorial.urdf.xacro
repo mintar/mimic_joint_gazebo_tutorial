@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro"
+  name="mimic_joint_gazebo_tutorial">
+
+  <xacro:macro name="box_inertial" params="x y z mass *origin">
+    <inertial>
+      <mass value="${mass}" />
+      <xacro:insert_block name="origin" />
+      <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
+        iyy="${0.0833333 * mass * (x*x + z*z)}" iyz="0.0"
+        izz="${0.0833333 * mass * (x*x + y*y)}" />
+    </inertial>
+  </xacro:macro>
+
+  <xacro:property name="material_yellow">
+    <material name="yellow">
+      <color rgba="${255/255} ${226/255} ${0/255} 1"/>
+    </material>
+  </xacro:property>
+  <xacro:property name="material_green">
+    <material name="green">
+      <color rgba="0 1 0 1"/>
+    </material>
+  </xacro:property>
+  <xacro:property name="material_red">
+    <material name="red">
+      <color rgba="1 0 0 1"/>
+    </material>
+  </xacro:property>
+
+  <xacro:macro name="mimic_joint_plugin_gazebo" params="name_prefix parent_joint mimic_joint has_pid:=false multiplier:=1.0 offset:=0 sensitiveness:=0.0 max_effort:=1.0 robot_namespace:=''">
+    <gazebo>
+      <plugin name="${name_prefix}mimic_joint_plugin" filename="libroboticsgroup_gazebo_mimic_joint_plugin.so">
+        <joint>${parent_joint}</joint>
+        <mimicJoint>${mimic_joint}</mimicJoint>
+        <hasPID>${has_pid}</hasPID>                       <!-- if set to true, PID parameters from "/gazebo_ros_control/pid_gains/${mimic_joint}" are loaded -->
+        <multiplier>${multiplier}</multiplier>
+        <offset>${offset}</offset>
+        <sensitiveness>${sensitiveness}</sensitiveness>   <!-- if absolute difference between setpoint and process value is below this threshold, do nothing; 0.0 = disable [rad] -->
+        <maxEffort>${max_effort}</maxEffort>              <!-- only taken into account if has_pid:=true [Nm] -->
+        <xacro:unless value="${robot_namespace == ''}">
+          <robotNamespace>($robot_namespace)</robotNamespace>
+        </xacro:unless>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:macro name="controller_plugin_gazebo" params="robot_namespace:=''">
+    <gazebo>
+      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+        <xacro:unless value="${robot_namespace == ''}">
+          <robotNamespace>($robot_namespace)</robotNamespace>
+        </xacro:unless>
+        <controlPeriod>0.001</controlPeriod>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <controller_plugin_gazebo />
+
+  <!-- base_footprint + base_link -->
+
+  <link name="base_footprint" />
+
+  <joint name="base_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.025" />
+    <parent link="base_footprint" />
+    <child link="base_link" />
+  </joint>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" />
+      <geometry>
+        <box size="0.10 0.20 0.05" />
+      </geometry>
+      <xacro:insert_block name="material_yellow" />
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" />
+      <geometry>
+        <box size="0.10 0.20 0.05" />
+      </geometry>
+    </collision>
+    <xacro:box_inertial mass="1.0" x="0.10" y="0.20" z="0.05">
+      <origin xyz="0 0 0" />
+    </xacro:box_inertial>
+  </link>
+  <gazebo reference="base_link">
+    <material>Gazebo/Yellow</material>
+  </gazebo>
+
+  <!-- right finger -->
+
+  <joint name="right_finger_joint" type="revolute">
+    <origin xyz="0.0 -0.10 0.0" rpy="0 0 ${pi}" />
+    <parent link="base_link" />
+    <child link="right_finger" />
+    <axis xyz="1 0 0" />
+    <limit lower="0" upper="${pi / 2}" velocity="0.7" effort="1000" />
+    <dynamics damping="0.02" friction="0.0" />
+  </joint>
+
+  <link name="right_finger">
+    <visual>
+      <origin xyz="0 0.10 0" />
+      <geometry>
+        <box size="0.02 0.20 0.02" />
+      </geometry>
+      <xacro:insert_block name="material_green" />
+    </visual>
+    <collision>
+      <origin xyz="0 0.10 0" />
+      <geometry>
+        <box size="0.02 0.20 0.02" />
+      </geometry>
+    </collision>
+    <xacro:box_inertial mass="0.1" x="0.02" y="0.20" z="0.02">
+      <origin xyz="0 0.10 0" />
+    </xacro:box_inertial>
+  </link>
+  <gazebo reference="right_finger">
+    <material>Gazebo/Green</material>
+  </gazebo>
+
+  <transmission name="right_finger_joint_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="right_finger_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="right_finger_joint_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- left finger -->
+
+  <joint name="left_finger_joint" type="revolute">
+    <origin xyz="0.0 0.10 0.0" />
+    <parent link="base_link" />
+    <child link="left_finger" />
+    <axis xyz="1 0 0" />
+    <limit lower="0" upper="${pi / 2}" velocity="0.7" effort="1000" />
+    <mimic joint="right_finger_joint" multiplier="1" offset="0" />
+    <dynamics damping="0.02" friction="0.0" />
+  </joint>
+
+  <xacro:mimic_joint_plugin_gazebo name_prefix="left_finger_joint"
+    parent_joint="right_finger_joint" mimic_joint="left_finger_joint"
+    has_pid="true" multiplier="1.0" max_effort="10.0" />
+
+  <link name="left_finger">
+    <visual>
+      <origin xyz="0 0.10 0" />
+      <geometry>
+        <box size="0.02 0.20 0.02" />
+      </geometry>
+      <xacro:insert_block name="material_red" />
+    </visual>
+    <collision>
+      <origin xyz="0 0.10 0" />
+      <geometry>
+        <box size="0.02 0.20 0.02" />
+      </geometry>
+    </collision>
+    <xacro:box_inertial mass="0.1" x="0.02" y="0.20" z="0.02">
+      <origin xyz="0 0.10 0" />
+    </xacro:box_inertial>
+  </link>
+  <gazebo reference="left_finger">
+    <material>Gazebo/Red</material>
+  </gazebo>
+
+  <!-- DO NOT add a transmission for the left finger joint. We want the left
+       finger joint to be controlled by the mimic plugin. If we add a
+       transmission, the ros_control plugin will try to control this joint. -->
+  <!--
+  <transmission name="left_finger_joint_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="left_finger_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="left_finger_joint_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  -->
+</robot>
