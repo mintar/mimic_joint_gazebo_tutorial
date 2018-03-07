@@ -68,11 +68,15 @@ move the right finger, the left doesn't follow any more. This is because the
 mimic joint plugin expected us to specify PID parameters, and our change to
 `gazebo.launch` caused the PID parameters not to be loaded.
 
-If you want, you can delete the following line from the file `urdf/mimic_joint_gazebo_tutorial.urdf.xacro`:
+If you want, you can edit the following line in the file `urdf/mimic_joint_gazebo_tutorial.urdf.xacro`:
 
+```xml
+  <xacro:mimic_joint_plugin_gazebo name_prefix="left_finger_joint"
+    parent_joint="right_finger_joint" mimic_joint="left_finger_joint"
+    has_pid="true" multiplier="1.0" max_effort="10.0" />
 ```
-        <hasPID>${has_pid}</hasPID>                       <!-- if set to true, PID parameters from "/gazebo_ros_control/pid_gains/${mimic_joint}" are loaded -->
-```
+
+... and change `has_pid="true"` to `has_pid="false"`.
 
 Now restart Gazebo and drop the model again. The mimic plugin now works, but is
 also affected by the gravity bug. Note that you actually have to delete the
