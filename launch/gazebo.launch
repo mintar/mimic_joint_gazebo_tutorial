@@ -10,7 +10,7 @@
        to lose contact with the ground, so the robot won't be able to properly
        navigate. See
        https://github.com/ros-simulation/gazebo_ros_pkgs/issues/612 -->
-  <rosparam file="$(find mimic_joint_gazebo_tutorial)/config/gazebo/gazebo_controller.yaml" command="load" />
+  <!-- <rosparam file="$(find mimic_joint_gazebo_tutorial)/config/gazebo/gazebo_controller.yaml" command="load" /> -->
 
   <!-- Gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
