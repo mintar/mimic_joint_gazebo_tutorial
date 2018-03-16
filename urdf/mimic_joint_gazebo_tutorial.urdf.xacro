@@ -149,7 +149,7 @@
 
   <xacro:mimic_joint_plugin_gazebo name_prefix="left_finger_joint"
     parent_joint="right_finger_joint" mimic_joint="left_finger_joint"
-    has_pid="true" multiplier="1.0" max_effort="10.0" />
+    has_pid="false" multiplier="1.0" max_effort="10.0" />
 
   <link name="left_finger">
     <visual>
