@@ -58,7 +58,7 @@
     </gazebo>
   </xacro:macro>
 
-  <controller_plugin_gazebo />
+  <xacro:controller_plugin_gazebo />
 
   <!-- base_footprint + base_link -->
 
